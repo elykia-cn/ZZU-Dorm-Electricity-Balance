@@ -1,60 +1,5 @@
 [
     {
-        "time": "02-14 00:29:41",
-        "lt_Balance": 123.9,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-14 12:26:54",
-        "lt_Balance": 123.0,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-14 21:27:40",
-        "lt_Balance": 122.0,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-15 00:27:10",
-        "lt_Balance": 121.8,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-15 12:27:52",
-        "lt_Balance": 121.0,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-15 15:18:46",
-        "lt_Balance": 120.0,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-15 21:21:53",
-        "lt_Balance": 118.0,
-        "ac_Balance": 8.9
-    },
-    {
-        "time": "02-16 00:25:28",
-        "lt_Balance": 116.0,
-        "ac_Balance": 8.8
-    },
-    {
-        "time": "02-16 12:25:33",
-        "lt_Balance": 114.0,
-        "ac_Balance": 8.8
-    },
-    {
-        "time": "02-16 15:21:19",
-        "lt_Balance": 112.0,
-        "ac_Balance": 8.8
-    },
-    {
-        "time": "02-16 18:21:47",
-        "lt_Balance": 111.0,
-        "ac_Balance": 8.8
-    },
-    {
         "time": "02-16 21:23:10",
         "lt_Balance": 109.0,
         "ac_Balance": 8.8
@@ -148,5 +93,60 @@
         "time": "02-20 21:29:00",
         "lt_Balance": 74.0,
         "ac_Balance": 8.6
+    },
+    {
+        "time": "02-21 00:54:23",
+        "lt_Balance": 71.0,
+        "ac_Balance": 8.6
+    },
+    {
+        "time": "02-21 12:29:03",
+        "lt_Balance": 69.0,
+        "ac_Balance": 8.6
+    },
+    {
+        "time": "02-21 15:21:45",
+        "lt_Balance": 68.0,
+        "ac_Balance": 8.6
+    },
+    {
+        "time": "02-21 18:24:30",
+        "lt_Balance": 66.0,
+        "ac_Balance": 8.6
+    },
+    {
+        "time": "02-21 21:27:09",
+        "lt_Balance": 64.0,
+        "ac_Balance": 8.6
+    },
+    {
+        "time": "02-22 00:28:34",
+        "lt_Balance": 61.0,
+        "ac_Balance": 8.5
+    },
+    {
+        "time": "02-22 12:27:45",
+        "lt_Balance": 60.0,
+        "ac_Balance": 8.5
+    },
+    {
+        "time": "02-22 15:19:03",
+        "lt_Balance": 59.0,
+        "ac_Balance": 8.5
+    },
+    {
+        "time": "02-22 18:22:58",
+        "lt_Balance": 57.0,
+        "ac_Balance": 8.5
+    },
+    {
+        "time": "02-22 21:22:52",
+        "lt_Balance": 55.0,
+        "ac_Balance": 8.5
+    },
+    {
+        "time": "02-23 00:25:40",
+        "lt_Balance": 51.0,
+        "ac_Balance": 8.5
     }
 ]
