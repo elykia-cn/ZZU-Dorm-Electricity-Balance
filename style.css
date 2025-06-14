@@ -1,0 +1,58 @@
+
+/* 全局样式 */
+body, html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f4f8;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
+
+#main-container {
+    width: 95%;
+    max-width: 1200px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 32px;
+    color: #0077b6;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* 时间选择框 */
+#select-box {
+    margin-bottom: 30px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+select {
+    padding: 8px 12px;
+    font-size: 16px;
+    border: 1px solid #0077b6;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+}
+
+/* 图表容器 */
+.chart-container {
+    width: 100%;
+    height: 400px;
+    margin-bottom: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}

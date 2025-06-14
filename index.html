@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>ZZU Dorm Electricity Balance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://registry.npmmirror.com/echarts/5.6.0/files/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div id="main-container">
+        <h1>宿舍电量监控</h1>
+        <div id="select-box">
+            <label for="timeSplit">选择时间段:</label>
+            <select id="timeSplit" onchange="updateChart()">
+                <option value="last_30_records">最近30条记录</option>
+                <!-- Options will be dynamically added here -->
+            </select>
+        </div>
+        <div id="chart-container1" class="chart-container"></div>
+        <div id="chart-container2" class="chart-container"></div>
+    </div>
+
+    <script>
+        const Chart1 = echarts.init(document.getElementById('chart-container1'));
+        const Chart2 = echarts.init(document.getElementById('chart-container2'));
+
+        let option1 = {
+            title: {
+                text: '照明电量',
+                textStyle: { fontSize: 20, fontWeight: 'bold' },
+                x: 'center',
+                y: 'top'
+            },
+            xAxis: { 
+                name: '时间', 
+                nameLocation: 'end', 
+                type: 'category', 
+                data: [] 
+            },
+            yAxis: { 
+                name: '电量 (kWh)', 
+                type: 'value' 
+            },
+            series: [{
+                data: [],
+                type: 'line',
+                smooth: true,
+                label: { show: true, position: 'top' }
+            }],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' },
+                formatter: function (a) {
+                    return a[0].name + '<br/>' + a[0].marker + ' 照明电量: ' + a[0].value + ' kWh';
+                }
+            },
+            dataZoom: [{
+                type: 'slider', 
+                start: 0, 
+                end: 100
+            }, {
+                type: 'inside', 
+                start: 0, 
+                end: 100
+            }]
+        };
+
+        let option2 = {
+            title: {
+                text: '空调电量',
+                textStyle: { fontSize: 20, fontWeight: 'bold' },
+                x: 'center',
+                y: 'top'
+            },
+            xAxis: { 
+                name: '时间', 
+                nameLocation: 'end', 
+                type: 'category', 
+                data: [] 
+            },
+            yAxis: { 
+                name: '电量 (kWh)', 
+                type: 'value' 
+            },
+            series: [{
+                data: [],
+                type: 'line',
+                smooth: true,
+                label: { show: true, position: 'top' }
+            }],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' },
+                formatter: function (a) {
+                    return a[0].name + '<br/>' + a[0].marker + ' 空调电量: ' + a[0].value + ' kWh';
+                }
+            },
+            dataZoom: [{
+                type: 'slider', 
+                start: 0, 
+                end: 100
+            }, {
+                type: 'inside', 
+                start: 0, 
+                end: 100
+            }]
+        };
+
+        function fetchData(dataFilepath) {
+            return fetch(dataFilepath)
+                .then(response => response.json())
+                .catch(error => { console.error('Error loading JSON:', error); throw error; });
+        }
+
+        function setupCharts(jsonData) {
+            const times = jsonData.map(function (entry) { return entry.time; });
+            const lt_balances = jsonData.map(function (entry) { return entry.lt_Balance; });
+            const ac_balances = jsonData.map(function (entry) { return entry.ac_Balance; });
+            
+            option1.xAxis.data = times;
+            option1.series[0].data = lt_balances;
+            Chart1.setOption(option1);
+
+            option2.xAxis.data = times;
+            option2.series[0].data = ac_balances;
+            Chart2.setOption(option2);
+        }
+
+        function updateChart() {
+            const selectedYearMonth = document.getElementById('timeSplit').value;
+            const dataFilepath = `./data/${selectedYearMonth}.json`;
+            fetchData(dataFilepath)
+                .then(jsonData => { setupCharts(jsonData); })
+                .catch(error => console.error('Error setting up charts:', error));
+        }
+
+        fetchData('./data/time.json').then(timeData => {
+            const selectBox = document.getElementById('timeSplit');
+            timeData.forEach(yearMonth => {
+                const optionElement = document.createElement('option');
+                optionElement.value = yearMonth;
+                optionElement.text = yearMonth;
+                selectBox.add(optionElement);
+            });
+
+            updateChart();
+        }).catch(error => console.error('Error loading time data:', error));
+    </script>
+</body>
+
+</html>
