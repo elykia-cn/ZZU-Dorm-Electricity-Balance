@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>宿舍电量监控</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <script src="https://registry.npmmirror.com/echarts/6.0.0/files/dist/echarts.min.js"></script>
+    <style>
+        #main-container { width: 95%; margin: auto; }
+        .chart-container { width: 100%; height: 400px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <h1>宿舍电量监控</h1>
+        <div id="select-box">
+            <label for="timeSplit">选择时间段:</label>
+            <select id="timeSplit" onchange="updateCharts()">
+                <option value="last_30_records">最近30条记录</option>
+            </select>
+        </div>
+        <div id="chart-lt" class="chart-container"></div>
+        <div id="chart-ac" class="chart-container"></div>
+    </div>
+
+    <script>
+        const chartLt = echarts.init(document.getElementById('chart-lt'));
+        const chartAc = echarts.init(document.getElementById('chart-ac'));
+
+        function getBaseOption(title) {
+            return {
+                title: { text: title, left: 'center' },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: params => {
+                        const date = new Date(params[0].value[0]);
+                        const timeStr = date.toLocaleString('zh-CN', {
+                            month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                        return `${timeStr}<br/>${params[0].seriesName}: ${params[0].value[1].toFixed(2)} kWh`;
+                    }
+                },
+                xAxis: { type: 'time' },
+                yAxis: { type: 'value', name: '电量 (kWh)' },
+                series: [{ type: 'line', smooth: true, showSymbol: false, data: [] }],
+                dataZoom: [{ type: 'slider', xAxisIndex: 0 }, { type: 'inside', xAxisIndex: 0 }]
+            };
+        }
+
+        chartLt.setOption(getBaseOption('照明电量变化'));
+        chartAc.setOption(getBaseOption('空调电量变化'));
+
+        // ========== 工具函数 ==========
+        function interpolateMissingData(dataArray) {
+            const processed = [...dataArray];
+            ['lt_Balance', 'ac_Balance'].forEach(field => {
+                for (let i = 0; i < processed.length; i++) {
+                    if (processed[i][field] == null) {
+                        let prev = i - 1;
+                        while (prev >= 0 && processed[prev][field] == null) prev--;
+                        let next = i + 1;
+                        while (next < processed.length && processed[next][field] == null) next++;
+                        if (prev >= 0 && next < processed.length) {
+                            const step = (processed[next][field] - processed[prev][field]) / (next - prev);
+                            processed[i][field] = processed[prev][field] + step * (i - prev);
+                        } else if (prev >= 0) {
+                            processed[i][field] = processed[prev][field];
+                        } else if (next < processed.length) {
+                            processed[i][field] = processed[next][field];
+                        } else {
+                            processed[i][field] = 0;
+                        }
+                    }
+                }
+            });
+            return processed;
+        }
+
+        function cubicSplineInterpolate(xs, ys, numPoints = 10) {
+            const n = xs.length;
+            if (n < 3) return xs.map((x, i) => [x, ys[i], true]);
+            const h = new Array(n - 1);
+            for (let i = 0; i < n - 1; i++) h[i] = xs[i + 1] - xs[i];
+            const alpha = new Array(n).fill(0);
+            for (let i = 1; i < n - 1; i++) {
+                alpha[i] = (3 / h[i]) * (ys[i + 1] - ys[i]) - (3 / h[i - 1]) * (ys[i] - ys[i - 1]);
+            }
+            const l = new Array(n).fill(1);
+            const mu = new Array(n).fill(0);
+            const z = new Array(n).fill(0);
+            for (let i = 1; i < n - 1; i++) {
+                l[i] = 2 * (xs[i + 1] - xs[i - 1]) - h[i - 1] * mu[i - 1];
+                mu[i] = h[i] / l[i];
+                z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
+            }
+            const b = new Array(n - 1);
+            const c = new Array(n).fill(0);
+            const d = new Array(n - 1);
+            for (let j = n - 2; j >= 0; j--) {
+                c[j] = z[j] - mu[j] * c[j + 1];
+                b[j] = (ys[j + 1] - ys[j]) / h[j] - h[j] * (c[j + 1] + 2 * c[j]) / 3;
+                d[j] = (c[j + 1] - c[j]) / (3 * h[j]);
+            }
+            const result = [];
+            for (let i = 0; i < n - 1; i++) {
+                const step = (xs[i + 1] - xs[i]) / numPoints;
+                for (let k = 0; k <= numPoints; k++) {
+                    const x = xs[i] + k * step;
+                    const dx = x - xs[i];
+                    const y = ys[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
+                    // 插值点标记为 false
+                    result.push([x, y, k === 0 ? true : false]);
+                }
+            }
+            return result;
+        }
+
+        function fetchData(filepath) {
+            return fetch(filepath).then(r => r.json());
+        }
+
+        function setupCharts(jsonData) {
+            const filled = interpolateMissingData(jsonData);
+            const year = new Date().getFullYear();
+            const data = filled.map(e => ({
+                ...e, timestamp: new Date(`${year}-${e.time}`).getTime()
+            })).sort((a, b) => a.timestamp - b.timestamp);
+
+            const xs = data.map(e => e.timestamp);
+            const ltDataRaw = cubicSplineInterpolate(xs, data.map(e => e.lt_Balance), 20);
+            const acDataRaw = cubicSplineInterpolate(xs, data.map(e => e.ac_Balance), 20);
+
+            const ltData = ltDataRaw.map(p => ({ value: [p[0], p[1]], symbol: p[2] ? 'circle' : 'none', symbolSize: 6 }));
+            const acData = acDataRaw.map(p => ({ value: [p[0], p[1]], symbol: p[2] ? 'circle' : 'none', symbolSize: 6 }));
+
+            chartLt.setOption({ series: [{ name: '照明电量', type: 'line', smooth: true, showSymbol: true, data: ltData }] });
+            chartAc.setOption({ series: [{ name: '空调电量', type: 'line', smooth: true, showSymbol: true, data: acData }] });
+        }
+
+        function updateCharts() {
+            const sel = document.getElementById('timeSplit').value;
+            fetchData(`./data/${sel}.json`)
+                .then(data => setupCharts(data))
+                .catch(err => console.error('加载错误:', err));
+        }
+
+        // 初始化
+        fetchData('./data/time.json').then(timeData => {
+            const sel = document.getElementById('timeSplit');
+            timeData.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v; opt.text = v; sel.add(opt);
+            });
+            if (timeData.length > 0) updateCharts();
+        });
+    </script>
+</body>
+</html>
